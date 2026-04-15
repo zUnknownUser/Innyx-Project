@@ -9,10 +9,12 @@ use Illuminate\Http\Request;
 class CategoryController extends Controller
 {
    
-    public function index()
-    {
-        return Category::all();
-    }
+   public function index()
+{
+    return response()->json(
+        Category::query()->select('id', 'name')->get()
+    );
+}
 
    
     public function store(Request $request)

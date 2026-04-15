@@ -112,15 +112,15 @@
               <div class="form-field">
                 <label class="form-label custom-label">Categoria</label>
                 <select v-model="form.category_id" class="form-select custom-input">
-                  <option value="">Selecione uma categoria</option>
-                  <option
-                    v-for="category in categories"
-                    :key="category.id"
-                    :value="String(category.id)"
-                  >
-                    {{ category.name }}
-                  </option>
-                </select>
+  <option disabled value="">Selecione uma categoria</option>
+  <option
+    v-for="category in categories"
+    :key="category.id"
+    :value="category.id"
+  >
+    {{ category.name }}
+  </option>
+</select>
               </div>
 
               <div class="form-field">
@@ -365,7 +365,7 @@ const form = ref({
   description: '',
   price: '',
   expiration_date: '',
-  category_id: '',
+  category_id: null as number | null,
   image: null as File | null,
   image_url: '',
 })
@@ -406,7 +406,8 @@ const fetchProducts = async (page = 1) => {
 const fetchCategories = async () => {
   try {
     const response = await api.get('/categories')
-    categories.value = response.data
+    console.log('CATEGORIES RESPONSE:', response.data)
+    categories.value = response.data.data ?? response.data ?? []
   } catch (error) {
     console.error(error)
     generalError.value = 'Erro ao carregar categorias.'
@@ -415,8 +416,10 @@ const fetchCategories = async () => {
 
 const handleFileChange = (event: Event) => {
   const target = event.target as HTMLInputElement
-  if (target.files && target.files.length > 0) {
-    form.value.image = target.files[0]
+  const file = target.files?.[0]
+
+  if (file) {
+    form.value.image = file
   }
 }
 
@@ -426,7 +429,7 @@ const resetForm = () => {
     description: '',
     price: '',
     expiration_date: '',
-    category_id: '',
+    category_id: null,
     image: null,
     image_url: '',
   }
@@ -448,7 +451,7 @@ const saveProduct = async () => {
     formData.append('description', form.value.description)
     formData.append('price', form.value.price)
     formData.append('expiration_date', form.value.expiration_date)
-    formData.append('category_id', form.value.category_id)
+    formData.append('category_id', String(form.value.category_id ?? ''))
 
     if (form.value.image) {
       formData.append('image', form.value.image)
@@ -466,14 +469,25 @@ const saveProduct = async () => {
     resetForm()
     await fetchProducts(currentPage.value)
   } catch (error: any) {
+    console.error('ERRO COMPLETO:', error)
+    console.error('RESPOSTA:', error?.response?.data)
     console.error(error)
 
     if (error?.response?.data?.errors) {
       const errors = error.response.data.errors
-      const firstKey = Object.keys(errors)[0]
-      formError.value = errors[firstKey][0]
+      console.log('VALIDATION ERRORS:', errors)
+
+      const keys = Object.keys(errors)
+
+      if (keys.length > 0) {
+        const firstKey = keys[0] as keyof typeof errors
+        formError.value = errors[firstKey]?.[0] || 'Erro de validação.'
+      } else {
+        formError.value = 'Erro de validação.'
+      }
     } else {
-      formError.value = error?.response?.data?.message || 'Erro ao salvar produto.'
+      formError.value =
+        error?.response?.data?.message || 'Erro ao salvar produto.'
     }
   } finally {
     saving.value = false
@@ -491,7 +505,7 @@ const editProduct = (product: Product) => {
     description: product.description,
     price: String(product.price),
     expiration_date: product.expiration_date,
-    category_id: String(product.category_id),
+    category_id: product.category_id,
     image: null,
     image_url: product.image
       ? `http://127.0.0.1:8000/storage/${product.image}`
