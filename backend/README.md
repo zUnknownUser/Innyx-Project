@@ -183,13 +183,20 @@ O sistema utiliza autenticação baseada em token (JWT ou Sanctum), garantindo s
 
 ## Autor
 
-Desenvolvido por Jorge Gregório
+Desenvolvido por Lucas Amorim(Usei o computador do meu pai, entao salvou no nome dele!)
+## Alterei o nome do desenvolvedor 
 
 ---
+
+Caso ocorra erro de conexão com o banco, aguarde alguns segundos e execute novamente o comando de migrate.
 
 ## Observações finais
 
 O projeto foi desenvolvido com foco em organização, boas práticas e facilidade de execução.
+
+## Ambiente de execução
+
+Recomenda-se executar o projeto utilizando WSL (Windows Subsystem for Linux) ou ambiente Linux, pois o Docker foi configurado nesse contexto.
 
 Para rodar o projeto:
 
