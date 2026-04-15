@@ -1,0 +1,56 @@
+version: "3.9"
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: innyx_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: innyx
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: innyx
+      MYSQL_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  backend:
+    build:
+      context: /mnt/c/laragon/www/backend
+      dockerfile: Dockerfile
+    container_name: innyx_backend
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - /mnt/c/laragon/www/backend:/var/www
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: innyx
+      DB_USERNAME: innyx
+      DB_PASSWORD: root
+
+  frontend:
+    build:
+      context: /mnt/c/laragon/www/frontend
+      dockerfile: Dockerfile
+    container_name: innyx_frontend
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - /mnt/c/laragon/www/frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+
+volumes:
+  db_data:
